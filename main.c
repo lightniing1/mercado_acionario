@@ -22,15 +22,6 @@ typedef struct lista_empresa {
 
 } lista_empresa;
 
-lista_compra_venda * inicializa_lista_compra_venda (void);
-lista_empresa * inicializa_lista_empresas (void);
-int inserir_lista_acoes (lista_compra_venda *lista, lista_empresa *empresa, int qtd, int valor, char* sigla);
-int inserir_empresa (lista_empresa *lista, char* sigla, int cotacao);
-int excluir(lista_compra_venda *lista, int valor);
-int pesquisa_empresa (lista_empresa * empresa, char* sigla);
-int cotacao_empresa (lista_empresa * empresa, int cotacao, char* sigla);
-void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_venda *lista_venda, lista_empresa *empresa);
-
 
 //Cria um nó "cabeca" sem dados, apenas apontando. Inicializa uma lista.
 lista_compra_venda * inicializa_lista_compra_venda (void){
@@ -164,7 +155,6 @@ int pesquisa_empresa (lista_empresa *empresa, char* sigla){
     while(temp != NULL){
 
         if ( strcmp(temp->sigla, sigla) == 0){
-            printf("Achou a empresa\n");
             return 1;
         }
 
@@ -183,7 +173,6 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
     //Seleciona uma lista_acoes de compra...
     while (lista_compra->prox != NULL){
         lista_compra = lista_compra->prox;
-        //printf("Verificando lista_acoes: %s | %d | %d\n", lista_compra->sigla, lista_compra->valor, lista_compra->qtd);
 
         //... e compara com todas as acoes de venda. Repete isso com todas as de compra.
         while (lista_venda->prox){
@@ -191,7 +180,7 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
             lista_venda = lista_venda->prox;
             compara_siglas = strcmp(lista_compra->sigla, lista_venda->sigla);
 
-            //Se existe uma ordem de compra e venda compativel e as siglas são iguais. Executa a operlista_acoes.
+            //Se existe uma ordem de compra e venda compativel e as siglas são iguais. Executa a operacoes.
             if ( (lista_compra->valor == lista_venda->valor) && (compara_siglas) == 0 ){
 
                 //Seta a cotacao da empresa o ultimo preço de venda
@@ -218,8 +207,6 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
         }
     }
 
-    //printf("Execuclista_acoes de acoes terminada\n");
-
 };
 
 //Lista a quantidade e valor de cada lista_acoes da empresa selecionada
@@ -230,6 +217,7 @@ void exibir_acoes (lista_compra_venda *lista){
     }
 }
 
+//Lista a cotacao de todas as empresas
 void exibir_empresas (lista_empresa *lista){
     while (lista->prox != NULL){
         lista = lista->prox;
@@ -262,13 +250,6 @@ void salvar_acoes (lista_compra_venda *cabeca, char* nome_do_arquivo){
             temp = atual->prox;
 
             atual->prox = NULL;
-            
-            /*
-            printf("SALVANDO...\n");
-            printf("sigla: %s\n", atual->sigla);
-            printf("qtd: %d\n", atual->qtd);
-            printf("valor: %d\n", atual->valor);
-            */
 
             fwrite(atual, 1, sizeof(lista_compra_venda), pArquivo);
 
@@ -298,20 +279,10 @@ void salvar_empresas (lista_empresa * cabeca, char* nome_do_arquivo){
 
         while (atual->prox != NULL){
 
-            //Devido a um dos item da struct ser um ponteiro, não podemos salvar ele no arquivo. Daria problemas carregar um ponteiro para algo que aponta para algo invalido.
-            //Entao salvamos o ponteiro para o proximo item temporariamente em outro lugar e salvamos os dados do arquivo com o ponteiro apontando para NULL.
-            //Depois de salvo, colocamos o ponteiro no lugar.
-
             atual = atual->prox;
             temp = atual->prox;
 
             atual->prox = NULL;
-
-            /*
-            printf("SALVANDO...\n");
-            printf("sigla: %s\n", atual->sigla);
-            printf("qtd: %d\n", atual->cotacao);
-            */
 
             fwrite(atual, 1, sizeof(lista_empresa), pArquivo);
 
@@ -325,7 +296,6 @@ void salvar_empresas (lista_empresa * cabeca, char* nome_do_arquivo){
 
 void carrega_acoes (lista_compra_venda *cabeca, lista_empresa *empresas, char* nome_do_arquivo) {
 
-    //lista_compra_venda *atual = cabeca;
     lista_compra_venda *temp;
     FILE *pArquivo;
 
@@ -366,7 +336,6 @@ void carrega_empresas (lista_empresa *cabeca, char* nome_do_arquivo) {
 
 }
 
-
 int main()
 {
     lista_empresa * empresas_listadas = inicializa_lista_empresas();
@@ -381,32 +350,7 @@ int main()
     carrega_empresas(empresas_listadas, "l_e");
     carrega_acoes(lista_compra, empresas_listadas, "l_c");
     carrega_acoes(lista_venda, empresas_listadas, "l_v");
-    
-    /*
-    printf("Parte 1\n");
-    exibir_empresas(empresas_listadas);
-    exibir_acoes(lista_compra);
-    exibir_acoes(lista_venda);
-
-    inserir_lista_acoes(lista_compra, empresas_listadas, 10, 10, "OIBR3");
-    inserir_lista_acoes(lista_venda, empresas_listadas, 10, 10, "OIBR3");
-
-    printf("Parte 2\n");
-    exibir_empresas(empresas_listadas);
-    exibir_acoes(lista_compra);
-    exibir_acoes(lista_venda);
-
-    executa_compras_vendas(lista_compra, lista_venda, empresas_listadas);
-    excluir(lista_compra, -1);
-    excluir(lista_venda, -1);
-
-    printf("Parte 3\n");
-    exibir_empresas(empresas_listadas);
-    exibir_acoes(lista_compra);
-    exibir_acoes(lista_venda);
-    */
-
-    
+   
     while (opcao){
 
     executa_compras_vendas(lista_compra, lista_venda, empresas_listadas);
