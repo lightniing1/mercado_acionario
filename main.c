@@ -2,11 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX 5
+#define FORMATO ".bin"
+
 typedef struct lista_compra_venda
 {
     int qtd;
     int valor;
-    char* sigla;
+    char sigla[5];
     struct lista_compra_venda *prox;
 
 } lista_compra_venda;
@@ -14,7 +17,7 @@ typedef struct lista_compra_venda
 typedef struct lista_empresa {
 
     int cotacao;
-    char* sigla;
+    char sigla[5];
     struct lista_empresa *prox;
 
 } lista_empresa;
@@ -22,10 +25,9 @@ typedef struct lista_empresa {
 lista_compra_venda * inicializa_lista_compra_venda (void);
 lista_empresa * inicializa_lista_empresas (void);
 int inserir_lista_acoes (lista_compra_venda *lista, lista_empresa *empresa, int qtd, int valor, char* sigla);
-int inserir_empresa (lista_empresa *lista, char* sigla);
+int inserir_empresa (lista_empresa *lista, char* sigla, int cotacao);
 int excluir(lista_compra_venda *lista, int valor);
 int pesquisa_empresa (lista_empresa * empresa, char* sigla);
-void listagem_empresas (lista_compra_venda *lista_acoes_compra, lista_compra_venda *lista_acoes_venda, lista_empresa *lista_empresas);
 int cotacao_empresa (lista_empresa * empresa, int cotacao, char* sigla);
 void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_venda *lista_venda, lista_empresa *empresa);
 
@@ -57,37 +59,57 @@ void Limpa_stdin(void)
 int inserir_lista_acoes (lista_compra_venda *lista, lista_empresa *empresa, int qtd, int valor, char* sigla){
 
     //Se existir...
-    lista_compra_venda *nova_lista_acoes = malloc(sizeof(lista_compra_venda)); //Criação do nó
 
-    nova_lista_acoes->qtd = qtd;
-    nova_lista_acoes->valor = valor;
-    nova_lista_acoes->sigla = sigla; 
-    nova_lista_acoes->prox = NULL;
+    int pesquisa = 1;
+    pesquisa = pesquisa_empresa(empresa, sigla);
 
-    while (lista->prox != NULL){
-        lista = lista->prox;
-    }
-
-    lista->prox = nova_lista_acoes;
-
-    int pesquisa = pesquisa_empresa(empresa, nova_lista_acoes->sigla);
-    
     if (pesquisa == 0){
-        inserir_empresa(empresa, nova_lista_acoes->sigla);
-    }
-    ////printf("Item adicionado\n");
 
+        inserir_empresa(empresa, sigla, 0);
+
+        lista_compra_venda *nova_lista_acoes = malloc(sizeof(lista_compra_venda)); //Criação do nó
     
+        nova_lista_acoes->qtd = qtd;
+        nova_lista_acoes->valor = valor;
+        strcpy(nova_lista_acoes->sigla, sigla); 
+        nova_lista_acoes->prox = NULL;
+
+        while (lista->prox != NULL){
+            lista = lista->prox;
+        }
+        
+        lista->prox = nova_lista_acoes;
+
+        printf("%d\n", pesquisa);
+            
+    } else {
+
+        lista_compra_venda *nova_lista_acoes = malloc(sizeof(lista_compra_venda)); //Criação do nó
+    
+        nova_lista_acoes->qtd = qtd;
+        nova_lista_acoes->valor = valor;
+        strcpy(nova_lista_acoes->sigla, sigla); 
+        nova_lista_acoes->prox = NULL;
+
+        while (lista->prox != NULL){
+            lista = lista->prox;
+        }
+        
+        lista->prox = nova_lista_acoes;
+
+        printf("%d\n", pesquisa);
+    }   
 
     return 0;
 }
 
-int inserir_empresa (lista_empresa *lista, char* sigla){
+
+int inserir_empresa (lista_empresa *lista, char* sigla, int cotacao){
 
     lista_empresa *nova_empresa = malloc(sizeof(lista_empresa)); //Criação do nó
     
-    nova_empresa->sigla = sigla;
-    nova_empresa->cotacao = 0;
+    strcpy(nova_empresa->sigla, sigla);
+    nova_empresa->cotacao = cotacao;
     nova_empresa->prox = NULL;
 
     while (lista->prox != NULL){
@@ -95,8 +117,23 @@ int inserir_empresa (lista_empresa *lista, char* sigla){
     }
 
     lista->prox = nova_empresa;
-    //printf("Empresa adicionada\n");
 
+}
+
+int cotacao_empresa (lista_empresa * empresa, int cotacao, char* sigla){
+
+    int compara = 1;
+    
+    while(empresa->prox != NULL){
+
+        empresa = empresa->prox;
+        compara = strcmp(empresa->sigla, sigla);
+
+        if (compara == 0){
+            empresa->cotacao = cotacao;
+        }
+    }
+    return 0;
 }
 
 int excluir (lista_compra_venda *lista, int valor){
@@ -110,46 +147,30 @@ int excluir (lista_compra_venda *lista, int valor){
     }
 
     if (temp == NULL){
-        ////printf("Nao achado\n");
         return 1;
     }
 
     anterior->prox = temp->prox;
-    ////printf("Excluido\n");
 
     free(temp);
     return 0;
 };
 
-int pesquisa_empresa (lista_empresa * empresa, char* sigla){
+
+int pesquisa_empresa (lista_empresa *empresa, char* sigla){
 
     lista_empresa *temp = empresa;
 
     while(temp != NULL){
-        if (temp->sigla == sigla){
+
+        if ( strcmp(temp->sigla, sigla) == 0){
+            printf("Achou a empresa\n");
             return 1;
         }
+
         temp = temp->prox;
     }
 
-    if (temp == NULL){
-        //printf("Empresa nao disponivel para setar cotacao");
-        return 0;
-    }
-
-}
-
-int cotacao_empresa (lista_empresa * empresa, int cotacao, char* sigla){
-
-    while(empresa != NULL){
-        empresa = empresa->prox;
-        if (empresa->sigla == sigla){
-            empresa->cotacao = cotacao;
-            return 0;
-        }
-    }
-
-    //printf("Nova cotacao setada\n");
 }
 
 //Verifica se pode realizar compra/venda nas ações listadas
@@ -157,6 +178,7 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
 
     char* sigla;
     int temp = 0;
+    int compara_siglas;
 
     //Seleciona uma lista_acoes de compra...
     while (lista_compra->prox != NULL){
@@ -165,10 +187,12 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
 
         //... e compara com todas as acoes de venda. Repete isso com todas as de compra.
         while (lista_venda->prox){
+
             lista_venda = lista_venda->prox;
-            
+            compara_siglas = strcmp(lista_compra->sigla, lista_venda->sigla);
+
             //Se existe uma ordem de compra e venda compativel e as siglas são iguais. Executa a operlista_acoes.
-            if (lista_compra->valor == lista_venda->valor && lista_compra->sigla == lista_venda->sigla){
+            if ( (lista_compra->valor == lista_venda->valor) && (compara_siglas) == 0 ){
 
                 //Seta a cotacao da empresa o ultimo preço de venda
                 cotacao_empresa(empresa, lista_venda->valor, lista_venda->sigla);
@@ -187,8 +211,8 @@ void executa_compras_vendas (lista_compra_venda *lista_compra, lista_compra_vend
                     lista_venda->valor = -1;
                 }
 
-                //printf("Ordem realizada\n");
-                //printf("\n");
+                printf("Ordem realizada\n");
+                printf("\n");
 
             }
         }
@@ -218,16 +242,15 @@ void exibir_empresas (lista_empresa *lista){
 }
 
 
-void salvar_acoes (lista_compra_venda * cabeca){
+void salvar_acoes (lista_compra_venda *cabeca, char* nome_do_arquivo){
 
     lista_compra_venda *atual = cabeca;
     lista_compra_venda *temp = NULL;
-
     FILE *pArquivo;
 
-    if (pArquivo != NULL){
+    pArquivo = fopen(nome_do_arquivo, "wb");
 
-        pArquivo = fopen("arquivo.txt", "wb");
+    if (pArquivo != NULL){
 
         while (atual->prox != NULL){
 
@@ -239,7 +262,14 @@ void salvar_acoes (lista_compra_venda * cabeca){
             temp = atual->prox;
 
             atual->prox = NULL;
-            printf("SALVANDO\n");
+            
+            /*
+            printf("SALVANDO...\n");
+            printf("sigla: %s\n", atual->sigla);
+            printf("qtd: %d\n", atual->qtd);
+            printf("valor: %d\n", atual->valor);
+            */
+
             fwrite(atual, 1, sizeof(lista_compra_venda), pArquivo);
 
             atual->prox = temp;
@@ -256,9 +286,86 @@ void salvar_acoes (lista_compra_venda * cabeca){
 
 }
 
-void carrega_acoes (lista_compra_venda *cabeca){
+void salvar_empresas (lista_empresa * cabeca, char* nome_do_arquivo){
+
+    lista_empresa *atual = cabeca;
+    lista_empresa *temp = NULL;
+    FILE *pArquivo;
+
+    pArquivo = fopen(nome_do_arquivo, "wb");
+
+    if (pArquivo != NULL){
+
+        while (atual->prox != NULL){
+
+            //Devido a um dos item da struct ser um ponteiro, não podemos salvar ele no arquivo. Daria problemas carregar um ponteiro para algo que aponta para algo invalido.
+            //Entao salvamos o ponteiro para o proximo item temporariamente em outro lugar e salvamos os dados do arquivo com o ponteiro apontando para NULL.
+            //Depois de salvo, colocamos o ponteiro no lugar.
+
+            atual = atual->prox;
+            temp = atual->prox;
+
+            atual->prox = NULL;
+
+            /*
+            printf("SALVANDO...\n");
+            printf("sigla: %s\n", atual->sigla);
+            printf("qtd: %d\n", atual->cotacao);
+            */
+
+            fwrite(atual, 1, sizeof(lista_empresa), pArquivo);
+
+            atual->prox = temp;
+
+        }
     
+        fclose(pArquivo);
+    }
 }
+
+void carrega_acoes (lista_compra_venda *cabeca, lista_empresa *empresas, char* nome_do_arquivo) {
+
+    //lista_compra_venda *atual = cabeca;
+    lista_compra_venda *temp;
+    FILE *pArquivo;
+
+
+    pArquivo = fopen(nome_do_arquivo, "rb");
+
+    if (pArquivo != NULL){
+
+        while ( fread (temp, sizeof(lista_compra_venda), 1, pArquivo) ){
+
+            inserir_lista_acoes(cabeca, empresas, temp->qtd, temp->valor, temp->sigla);
+        }
+
+        fclose(pArquivo);
+
+    }
+
+}
+
+void carrega_empresas (lista_empresa *cabeca, char* nome_do_arquivo) {
+
+    lista_empresa *atual = cabeca;
+    lista_empresa *temp;
+    FILE *pArquivo;
+
+    pArquivo = fopen(nome_do_arquivo, "rb");
+
+    if (pArquivo != NULL){
+
+        while ( fread (temp, sizeof(lista_empresa), 1, pArquivo) ){
+
+            inserir_empresa(cabeca, temp->sigla, temp->cotacao);
+        }
+
+        fclose(pArquivo);
+
+    }
+
+}
+
 
 int main()
 {
@@ -271,15 +378,40 @@ int main()
     int preco = 0;
     int qtd = 0;
 
-    inserir_lista_acoes(lista_compra, empresas_listadas, 10, 15, "OIBR3");
-    inserir_lista_acoes(lista_compra, empresas_listadas, 10, 15, "LAME3");
-
-    exibir_acoes(lista_compra);
-    exibir_empresas(empresas_listadas);
-    salvar(lista_compra);
+    carrega_empresas(empresas_listadas, "l_e");
+    carrega_acoes(lista_compra, empresas_listadas, "l_c");
+    carrega_acoes(lista_venda, empresas_listadas, "l_v");
     
     /*
+    printf("Parte 1\n");
+    exibir_empresas(empresas_listadas);
+    exibir_acoes(lista_compra);
+    exibir_acoes(lista_venda);
+
+    inserir_lista_acoes(lista_compra, empresas_listadas, 10, 10, "OIBR3");
+    inserir_lista_acoes(lista_venda, empresas_listadas, 10, 10, "OIBR3");
+
+    printf("Parte 2\n");
+    exibir_empresas(empresas_listadas);
+    exibir_acoes(lista_compra);
+    exibir_acoes(lista_venda);
+
+    executa_compras_vendas(lista_compra, lista_venda, empresas_listadas);
+    excluir(lista_compra, -1);
+    excluir(lista_venda, -1);
+
+    printf("Parte 3\n");
+    exibir_empresas(empresas_listadas);
+    exibir_acoes(lista_compra);
+    exibir_acoes(lista_venda);
+    */
+
+    
     while (opcao){
+
+    executa_compras_vendas(lista_compra, lista_venda, empresas_listadas);
+    excluir(lista_compra, -1);
+    excluir(lista_venda, -1);
 
     printf("1 - Inserir acao para compra\n");
     printf("2 - Inserir acao para venda\n");
@@ -288,10 +420,10 @@ int main()
     printf("0 - Sair\n");
 
     scanf("%d", &opcao);
-    
-    executa_compras_vendas(lista_compra, lista_venda, empresas_listadas);
-    excluir(lista_compra, -1);
-    excluir(lista_venda, -1);
+
+    salvar_acoes(lista_compra, "l_c");
+    salvar_acoes(lista_venda, "l_v");
+    salvar_empresas(empresas_listadas, "l_e");
 
     Limpa_stdin();
 
@@ -301,7 +433,7 @@ int main()
             printf("__________________\n");
             
             printf("Sigla da empresa: ");
-            scanf("%s", nome);
+            scanf("%5s", nome);
 
             Limpa_stdin();
 
@@ -323,7 +455,7 @@ int main()
             printf("__________________\n");
 
             printf("Sigla da empresa: ");
-            scanf("%s", nome);
+            scanf("%5s", nome);
 
             Limpa_stdin();
 
@@ -373,6 +505,6 @@ int main()
         }
 
     }
-    */
-       return 0;
+    
+    return 0;
 }
